@@ -1,0 +1,6 @@
+{
+  "input_size": 224,
+  "threshold": 0.5,
+  "labels": ["Authentic", "Synthetic"],
+  "video_frame_count": 16
+}
