@@ -3,11 +3,26 @@ import { useState, type FormEvent } from 'react';
 type Props = {
   onAnalyze: (file: File) => void | Promise<void>;
   isLoading?: boolean;
+  isBackendReady?: boolean;
+  helperMessage?: string;
 };
 
-export function UploadForm({ onAnalyze, isLoading = false }: Props) {
+export function UploadForm({ onAnalyze, isLoading = false, isBackendReady = true, helperMessage }: Props) {
   const [fileName, setFileName] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isDragActive, setIsDragActive] = useState(false);
+
+  function setFile(file: File | null) {
+    setSelectedFile(file);
+    setFileName(file?.name ?? null);
+  }
+
+  function handleDrop(event: React.DragEvent<HTMLLabelElement>) {
+    event.preventDefault();
+    setIsDragActive(false);
+    const file = event.dataTransfer.files?.[0] ?? null;
+    setFile(file);
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -19,21 +34,30 @@ export function UploadForm({ onAnalyze, isLoading = false }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem', maxWidth: 640 }}>
-      <label style={{ display: 'grid', gap: '0.5rem' }}>
-        <span>Choose an image or video</span>
+    <form onSubmit={handleSubmit} className="upload-form surface-card">
+      <label
+        className={`dropzone ${isDragActive ? 'active' : ''}`}
+        onDragOver={(event) => {
+          event.preventDefault();
+          setIsDragActive(true);
+        }}
+        onDragLeave={() => setIsDragActive(false)}
+        onDrop={handleDrop}
+      >
+        <span className="form-label">Choose an image or video</span>
+        <span className="dropzone-caption">Drag and drop media here, or click to browse.</span>
         <input
+          className="file-input"
           type="file"
           accept="image/*,video/*"
           onChange={(event) => {
-            const file = event.target.files?.[0] ?? null;
-            setSelectedFile(file);
-            setFileName(file?.name ?? null);
+            setFile(event.target.files?.[0] ?? null);
           }}
         />
       </label>
-      <p>{fileName ? `Selected: ${fileName}` : 'No file selected yet.'}</p>
-      <button type="submit" disabled={!selectedFile || isLoading}>
+      <p className="file-meta">{fileName ? `Selected: ${fileName}` : 'No file selected yet.'}</p>
+      {helperMessage ? <p className="helper-text">{helperMessage}</p> : null}
+      <button className="primary-button" type="submit" disabled={!selectedFile || isLoading || !isBackendReady}>
         {isLoading ? 'Analyzing...' : 'Analyze media'}
       </button>
     </form>

@@ -2,10 +2,16 @@ import Link from 'next/link';
 
 export default function ResultPage() {
   return (
-    <main style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem', display: 'grid', gap: '1rem' }}>
-      <h1>Prediction Result</h1>
-      <p>The live prediction and explanation overlays are shown from the upload page.</p>
-      <Link href="/Upload">Open upload flow</Link>
+    <main className="page-shell">
+      <section className="hero-card">
+        <h1 className="hero-title">Prediction Result</h1>
+        <p className="hero-subtitle">Run an upload to generate live confidence and explainability overlays.</p>
+        <p>
+          <Link className="inline-link" href="/Upload">
+            Open upload workflow
+          </Link>
+        </p>
+      </section>
     </main>
   );
 }

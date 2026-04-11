@@ -23,7 +23,7 @@ function toImageSrc(base64: string) {
 
 export function PredictionResultView({ mediaUrl, mediaKind, result }: Props) {
   return (
-    <section style={{ display: 'grid', gap: '1rem' }}>
+    <section className="results-grid">
       <MediaPreview mediaUrl={mediaUrl} mediaKind={mediaKind} />
       <ResultCard
         result={{
@@ -37,7 +37,7 @@ export function PredictionResultView({ mediaUrl, mediaKind, result }: Props) {
       <MetricsPanel confidence={result.confidence} label={result.label} />
 
       {isImagePredictionResponse(result) ? (
-        <section style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+        <section className="heatmap-grid">
           <HeatmapViewer
             title="Grad-CAM Overlay"
             imageSrc={toImageSrc(result.gradcam_overlay_base64)}
@@ -52,11 +52,11 @@ export function PredictionResultView({ mediaUrl, mediaKind, result }: Props) {
       ) : null}
 
       {isVideoPredictionResponse(result) ? (
-        <section style={{ display: 'grid', gap: '1rem' }}>
-          <h2 style={{ marginBottom: 0 }}>Sampled Frame Explanations</h2>
-          <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
+        <section className="results-grid">
+          <h2 className="card-title">Sampled Frame Explanations</h2>
+          <div className="frame-grid">
             {result.sampled_frames_explanations.map((frame) => (
-              <article key={frame.frame_index} style={{ display: 'grid', gap: '1rem' }}>
+              <article key={frame.frame_index} className="results-grid">
                 <ResultCard
                   result={{
                     label: `${frame.label} - Frame ${frame.frame_index}`,

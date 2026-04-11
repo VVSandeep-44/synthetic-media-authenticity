@@ -5,10 +5,12 @@ type Props = {
 
 export function MetricsPanel({ confidence, label }: Props) {
   return (
-    <section style={{ border: '1px solid #d0d7de', borderRadius: 12, padding: '1rem' }}>
-      <h2>Metrics</h2>
-      <p>Predicted label: {label}</p>
-      <p>Confidence score: {(confidence * 100).toFixed(1)}%</p>
+    <section className="surface-card">
+      <h2 className="card-title">Metrics</h2>
+      <div className="metrics-grid">
+        <span className="metrics-pill">Predicted: {label}</span>
+        <span className="metrics-pill">Confidence: {(confidence * 100).toFixed(1)}%</span>
+      </div>
     </section>
   );
 }

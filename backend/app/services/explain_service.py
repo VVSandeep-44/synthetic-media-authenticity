@@ -7,10 +7,31 @@ import tempfile
 
 import cv2
 import numpy as np
+import torch
+import torch.nn.functional as F
 from PIL import Image, ImageFilter, ImageOps
+from torchvision import transforms
 
+from app.ml.model_def import HybridCNNViT
 from app.schemas import ImagePredictionResponse, VideoFrameExplanation, VideoPredictionResponse
 from app.utils.io import detect_media_kind
+
+# Initialize model globally (loaded once at startup)
+_model: HybridCNNViT | None = None
+_device: torch.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+
+def _get_model() -> HybridCNNViT:
+    """Lazy-load model on first request."""
+    global _model
+    if _model is None:
+        _model = HybridCNNViT(num_classes=2, input_size=224)
+        _model.to(_device)
+        _model.eval()
+        # TODO: Load trained checkpoint if available
+        # checkpoint = torch.load('path/to/checkpoint.pt', map_location=_device)
+        # _model.load_state_dict(checkpoint['model_state_dict'])
+    return _model
 
 
 def build_image_prediction(data: bytes, filename: str | None = None, content_type: str | None = None) -> ImagePredictionResponse:
@@ -124,12 +145,31 @@ def _vit_heatmap(image: Image.Image) -> np.ndarray:
 
 
 def _classify_image(image: Image.Image) -> tuple[str, float]:
-    grayscale = np.asarray(image.convert('L'), dtype=np.float32) / 255.0
-    edges = np.abs(np.gradient(grayscale)[0]) + np.abs(np.gradient(grayscale)[1])
-    texture_score = float(np.clip(0.55 * grayscale.std() + 0.45 * edges.mean(), 0.0, 1.0))
-    label = 'Synthetic' if texture_score > 0.28 else 'Authentic'
-    confidence = float(np.clip(0.55 + abs(texture_score - 0.28) * 1.4, 0.55, 0.99))
-    return label, confidence
+    """Classify image using HybridCNNViT model."""
+    model = _get_model()
+
+    # Preprocess: convert PIL to tensor
+    preprocess = transforms.Compose([
+        transforms.Resize(224),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
+
+    input_tensor = preprocess(image).unsqueeze(0).to(_device)
+
+    # Forward pass
+    with torch.no_grad():
+        logits = model(input_tensor)
+        probs = F.softmax(logits, dim=1)
+        confidence, predicted_idx = torch.max(probs, 1)
+
+    # Map class index to label
+    labels = ['Authentic', 'Synthetic']
+    label = labels[predicted_idx.item()]
+    confidence_val = float(confidence.item())
+
+    return label, confidence_val
 
 
 def _summary_sentence(label: str, confidence: float, frame_index: int | None = None) -> str:

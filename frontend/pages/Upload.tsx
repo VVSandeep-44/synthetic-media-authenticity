@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 
 import { UploadForm } from '../components/UploadForm';
 import { PredictionResultView } from '../components/PredictionResultView';
-import { predictMedia, PredictionResponse } from '../services/api';
+import { checkApiHealth, predictMedia, PredictionResponse } from '../services/api';
+
+const MAX_UPLOAD_SIZE_BYTES = 80 * 1024 * 1024;
 
 export default function UploadPage() {
   const [result, setResult] = useState<PredictionResponse | null>(null);
@@ -10,6 +12,26 @@ export default function UploadPage() {
   const [mediaKind, setMediaKind] = useState<'image' | 'video' | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isBackendReady, setIsBackendReady] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function refreshHealth() {
+      const healthy = await checkApiHealth();
+      if (mounted) {
+        setIsBackendReady(healthy);
+      }
+    }
+
+    refreshHealth();
+    const interval = setInterval(refreshHealth, 8000);
+
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -20,6 +42,24 @@ export default function UploadPage() {
   }, [mediaUrl]);
 
   async function handleAnalyze(file: File) {
+    if (file.size > MAX_UPLOAD_SIZE_BYTES) {
+      setErrorMessage('File is too large. Please upload a file under 80MB.');
+      setResult(null);
+      return;
+    }
+
+    if (!(file.type.startsWith('image/') || file.type.startsWith('video/'))) {
+      setErrorMessage('Unsupported file type. Please upload an image or video file.');
+      setResult(null);
+      return;
+    }
+
+    if (!isBackendReady) {
+      setErrorMessage('Backend is offline. Start the API server and retry.');
+      setResult(null);
+      return;
+    }
+
     const previewUrl = URL.createObjectURL(file);
     setMediaUrl(previewUrl);
     setMediaKind(file.type.startsWith('video/') ? 'video' : 'image');
@@ -39,15 +79,25 @@ export default function UploadPage() {
   }
 
   return (
-    <main style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem', display: 'grid', gap: '1.5rem' }}>
-      <section style={{ display: 'grid', gap: '0.5rem' }}>
-        <h1 style={{ marginBottom: 0 }}>Upload Media</h1>
-        <p style={{ marginTop: 0 }}>Upload an image or video to see the model output, confidence, and explanation overlays.</p>
+    <main className="page-shell">
+      <section className="hero-card">
+        <h1 className="hero-title">Upload Media</h1>
+        <p className="hero-subtitle">
+          Upload an image or video to reveal authenticity signals, confidence, and explainability overlays.
+        </p>
+        <p className={`status-badge ${isBackendReady ? 'ok' : 'offline'}`}>
+          Backend status: {isBackendReady ? 'Connected' : 'Offline'}
+        </p>
       </section>
 
-      <UploadForm onAnalyze={handleAnalyze} isLoading={isLoading} />
+      <UploadForm
+        onAnalyze={handleAnalyze}
+        isLoading={isLoading}
+        isBackendReady={isBackendReady}
+        helperMessage="Supported types: image/* and video/*"
+      />
 
-      {errorMessage ? <p style={{ color: '#b42318' }}>{errorMessage}</p> : null}
+      {errorMessage ? <p className="error-text">{errorMessage}</p> : null}
 
       {result && mediaUrl && mediaKind ? (
         <PredictionResultView mediaUrl={mediaUrl} mediaKind={mediaKind} result={result} />

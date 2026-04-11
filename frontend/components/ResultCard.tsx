@@ -10,10 +10,10 @@ type Props = {
 
 export function ResultCard({ result }: Props) {
   return (
-    <section style={{ border: '1px solid #d0d7de', borderRadius: 16, padding: '1rem', background: '#fff' }}>
-      <h2>{result.label}</h2>
-      <p>Confidence: {(result.confidence * 100).toFixed(1)}%</p>
-      <p>{result.explanationText}</p>
+    <section className="surface-card">
+      <h2 className="card-title">{result.label}</h2>
+      <p className="card-body">Confidence: {(result.confidence * 100).toFixed(1)}%</p>
+      <p className="card-body">{result.explanationText}</p>
     </section>
   );
 }
