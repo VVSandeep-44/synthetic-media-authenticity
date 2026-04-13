@@ -20,3 +20,36 @@ Full-stack app for synthetic media authenticity detection with explainability.
 - Model definition, inference, and explainability logic live in `backend/app/`.
 - The UI calls the API from `frontend/services/api.ts` and renders results in `frontend/components/`.
 - `backend/app/services/` is the place to connect the real trained model and generate Grad-CAM and ViT rollout outputs.
+
+## How to Run Commands
+
+### Backend (FastAPI)
+```powershell
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### Frontend (Next.js)
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+### Docker (Full Stack)
+```powershell
+cd infra
+docker compose up --build
+```
+
+### Useful Commands
+```powershell
+# frontend production build
+cd frontend
+npm run build
+
+# backend quick syntax check
+cd backend
+python -m compileall app
+```

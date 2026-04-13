@@ -80,14 +80,18 @@ export default function UploadPage() {
 
   return (
     <main className="page-shell">
-      <section className="hero-card">
-        <h1 className="hero-title">Upload Media</h1>
-        <p className="hero-subtitle">
-          Upload an image or video to reveal authenticity signals, confidence, and explainability overlays.
-        </p>
-        <p className={`status-badge ${isBackendReady ? 'ok' : 'offline'}`}>
-          Backend status: {isBackendReady ? 'Connected' : 'Offline'}
-        </p>
+      <section className="hero-card hero-cyber">
+        <div className="hero-grid-overlay" aria-hidden="true" />
+        <div className="hero-content">
+          <p className="hero-kicker">ANALYSIS TERMINAL</p>
+          <h1 className="hero-title">Upload Media</h1>
+          <p className="hero-subtitle">
+            Upload an image or video to reveal authenticity signals, confidence, and explainability overlays.
+          </p>
+          <p className={`status-badge ${isBackendReady ? 'ok' : 'offline'}`}>
+            Backend status: {isBackendReady ? 'Connected' : 'Offline'}
+          </p>
+        </div>
       </section>
 
       <UploadForm

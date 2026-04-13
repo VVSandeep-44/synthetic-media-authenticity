@@ -39,6 +39,30 @@ class HybridCNNViT(nn.Module):
             nn.Linear(256, num_classes),
         )
 
+        # Hook state for explainability
+        self.cnn_features = None
+        self.cnn_gradients = None
+        self.vit_features = None
+        self.vit_gradients = None
+
+        # Register Hooks
+        self.cnn.features[-1].register_forward_hook(self._cnn_forward_hook)
+        self.cnn.features[-1].register_full_backward_hook(self._cnn_backward_hook)
+        self.vit.encoder.layers[-1].register_forward_hook(self._vit_forward_hook)
+        self.vit.encoder.layers[-1].register_full_backward_hook(self._vit_backward_hook)
+
+    def _cnn_forward_hook(self, module, input, output):
+        self.cnn_features = output
+
+    def _cnn_backward_hook(self, module, grad_input, grad_output):
+        self.cnn_gradients = grad_output[0]
+
+    def _vit_forward_hook(self, module, input, output):
+        self.vit_features = output
+
+    def _vit_backward_hook(self, module, grad_input, grad_output):
+        self.vit_gradients = grad_output[0]
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Args:

@@ -1,5 +1,8 @@
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useEffect, useRef, type CSSProperties, type MouseEvent } from 'react';
+
+const Hero3DVisual = dynamic(() => import('../components/Hero3DVisual'), { ssr: false });
 
 export default function HomePage() {
   const heroRef = useRef<HTMLElement | null>(null);
@@ -86,20 +89,13 @@ export default function HomePage() {
           </div>
         </div>
 
-        <aside className="hero-hud" aria-hidden="true">
-          <div className="hud-radar">
-            <span className="hud-ring ring-1" />
-            <span className="hud-ring ring-2" />
-            <span className="hud-ring ring-3" />
-            <span className="hud-sweep" />
-            <span className="hud-dot" />
-          </div>
-          <div className="hud-bars">
-            <span style={{ '--bar-h': '24%' } as CSSProperties} />
-            <span style={{ '--bar-h': '44%' } as CSSProperties} />
-            <span style={{ '--bar-h': '62%' } as CSSProperties} />
-            <span style={{ '--bar-h': '78%' } as CSSProperties} />
-            <span style={{ '--bar-h': '56%' } as CSSProperties} />
+        <aside className="hero-face" aria-hidden="true">
+          <div className="face-panel" style={{ padding: 0 }}>
+            <Hero3DVisual />
+            <div className="face-readout" style={{ pointerEvents: 'none', zIndex: 10 }}>
+              <span className="caption-chip signal">IDENTITY</span>
+              <span className="caption-chip live">LIVE</span>
+            </div>
           </div>
         </aside>
       </section>

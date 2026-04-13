@@ -8,9 +8,9 @@ class Settings(BaseSettings):
 
     app_name: str = 'Explainable Synthetic Media Analysis API'
     debug: bool = False
-    model_path: str = 'artifacts/best_model.pth'
-    class_names_path: str = 'artifacts/class_names.json'
-    model_config_path: str = 'artifacts/model_config.json'
+    model_path: str = '../artifacts/best_model.pth'
+    class_names_path: str = '../artifacts/class_names.json'
+    model_config_path: str = '../artifacts/model_config.json'
     upload_dir: str = 'uploads'
     max_video_frames: int = 16
 

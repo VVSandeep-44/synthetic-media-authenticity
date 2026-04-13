@@ -35,6 +35,12 @@ export function UploadForm({ onAnalyze, isLoading = false, isBackendReady = true
 
   return (
     <form onSubmit={handleSubmit} className="upload-form surface-card">
+      <div className="card-hud">
+        <span className="card-status">SIGNAL</span>
+        <span className={`caption-chip ${isBackendReady ? 'live' : 'signal'}`}>
+          {isBackendReady ? 'LIVE LINK' : 'WAITING'}
+        </span>
+      </div>
       <label
         className={`dropzone ${isDragActive ? 'active' : ''}`}
         onDragOver={(event) => {
