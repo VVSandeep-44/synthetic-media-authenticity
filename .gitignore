@@ -8,3 +8,4 @@ backend/__pycache__/
 .next/
 frontend/.next/
 uploads/
+dataset/

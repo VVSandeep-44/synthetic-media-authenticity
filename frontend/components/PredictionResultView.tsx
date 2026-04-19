@@ -1,42 +1,110 @@
-import { HeatmapViewer } from './HeatmapViewer';
-import { MediaPreview } from './MediaPreview';
-import { MetricsPanel } from './MetricsPanel';
-import { ResultCard } from './ResultCard';
+﻿import { HeatmapViewer } from "./HeatmapViewer";
+import { MediaPreview } from "./MediaPreview";
+import { MetricsPanel } from "./MetricsPanel";
+import { ResultCard } from "./ResultCard";
 import {
   ImagePredictionResponse,
   VideoPredictionResponse,
   isImagePredictionResponse,
-  isVideoPredictionResponse
-} from '../services/api';
+  isVideoPredictionResponse,
+} from "../services/api";
 
-const BASE64_PREFIX = 'data:image/png;base64,';
+const BASE64_PREFIX = "data:image/png;base64,";
 
 type Props = {
   mediaUrl: string;
-  mediaKind: 'image' | 'video';
+  mediaKind: "image" | "video";
   result: ImagePredictionResponse | VideoPredictionResponse;
 };
 
 function toImageSrc(base64: string) {
-  return base64.startsWith('data:') ? base64 : `${BASE64_PREFIX}${base64}`;
+  return base64.startsWith("data:") ? base64 : `${BASE64_PREFIX}${base64}`;
+}
+
+function VerdictBanner({
+  label,
+  confidence,
+}: {
+  label: string;
+  confidence: number;
+}) {
+  const isFake =
+    label.toLowerCase().includes("fake") ||
+    label.toLowerCase().includes("synthetic");
+  const percent = Math.round(confidence * 100);
+  const r = 52;
+  const circumference = 2 * Math.PI * r;
+  const offset = circumference - confidence * circumference;
+  const verdictClass = isFake ? "verdict-fake" : "verdict-real";
+  const verdictLabel = isFake ? "SYNTHETIC" : "AUTHENTIC";
+
+  return (
+    <div
+      className={`verdict-banner ${verdictClass}`}
+      aria-label={`Verdict: ${verdictLabel}, confidence ${percent}%`}
+    >
+      <div className="verdict-ring-wrap" aria-hidden="true">
+        <svg className="verdict-ring-svg" viewBox="0 0 120 120" width="120" height="120">
+          <circle cx="60" cy="60" r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="8" />
+          <circle
+            cx="60" cy="60" r={r}
+            fill="none"
+            className="verdict-ring-progress"
+            strokeWidth="8"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            transform="rotate(-90 60 60)"
+          />
+          <text x="60" y="56" textAnchor="middle" className="verdict-ring-pct">
+            {percent}%
+          </text>
+          <text x="60" y="72" textAnchor="middle" className="verdict-ring-sub">
+            confidence
+          </text>
+        </svg>
+      </div>
+      <div className="verdict-text-col">
+        <p className="verdict-kicker">ANALYSIS COMPLETE</p>
+        <p className={`verdict-label ${verdictClass}`}>{verdictLabel}</p>
+        <p className="verdict-desc">
+          The model classified this media as <strong>{label}</strong> with{" "}
+          <strong>{percent}%</strong> confidence. Review the explainability
+          overlays below for detailed evidence.
+        </p>
+        <div className="verdict-chips">
+          <span className={`caption-chip ${isFake ? "signal" : "live"}`}>
+            {isFake ? "DEEPFAKE DETECTED" : "MEDIA VERIFIED"}
+          </span>
+          <span className="caption-chip">{percent}% CONFIDENCE</span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function PredictionResultView({ mediaUrl, mediaKind, result }: Props) {
   return (
     <section className="results-grid">
-      <MediaPreview mediaUrl={mediaUrl} mediaKind={mediaKind} />
-      <ResultCard
-        result={{
-          label: result.label,
-          confidence: result.confidence,
-          explanationText: isImagePredictionResponse(result)
-            ? result.explanation_text
-            : `${result.sampled_frames_explanations.length} frame explanations were sampled.`
-        }}
-      />
-      <MetricsPanel confidence={result.confidence} label={result.label} />
+      <VerdictBanner label={result.label} confidence={result.confidence} />
 
-      {isImagePredictionResponse(result) ? (
+      <div className="results-side-grid">
+        <MediaPreview mediaUrl={mediaUrl} mediaKind={mediaKind} />
+        <div className="results-meta-stack">
+          <ResultCard
+            result={{
+              label: result.label,
+              confidence: result.confidence,
+              explanationText: isImagePredictionResponse(result)
+                ? result.explanation_text
+                : `${result.sampled_frames_explanations.length} frame explanations were sampled.`,
+            }}
+          />
+          <MetricsPanel confidence={result.confidence} label={result.label} />
+        </div>
+      </div>
+
+      {isImagePredictionResponse(result) && (
         <section className="heatmap-grid">
           <HeatmapViewer
             title="Grad-CAM Overlay"
@@ -49,9 +117,9 @@ export function PredictionResultView({ mediaUrl, mediaKind, result }: Props) {
             description={result.explanation_text}
           />
         </section>
-      ) : null}
+      )}
 
-      {isVideoPredictionResponse(result) ? (
+      {isVideoPredictionResponse(result) && (
         <section className="results-grid">
           <h2 className="card-title">Sampled Frame Explanations</h2>
           <div className="frame-grid">
@@ -61,7 +129,7 @@ export function PredictionResultView({ mediaUrl, mediaKind, result }: Props) {
                   result={{
                     label: `${frame.label} - Frame ${frame.frame_index}`,
                     confidence: frame.confidence,
-                    explanationText: frame.explanation_text
+                    explanationText: frame.explanation_text,
                   }}
                 />
                 <HeatmapViewer
@@ -78,7 +146,7 @@ export function PredictionResultView({ mediaUrl, mediaKind, result }: Props) {
             ))}
           </div>
         </section>
-      ) : null}
+      )}
     </section>
   );
 }
