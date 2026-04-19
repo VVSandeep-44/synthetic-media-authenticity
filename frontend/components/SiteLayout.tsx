@@ -66,6 +66,14 @@ export function SiteLayout({ children }: Props) {
               <span className="site-nav-icon" aria-hidden="true">◎</span>
               Result
             </Link>
+            <span className="nav-separator" aria-hidden="true" />
+            <Link href="/Login" className={navClass(router.pathname === '/Login')}>
+              <span className="site-nav-icon" aria-hidden="true">⏎</span>
+              Login
+            </Link>
+            <Link href="/Signup" className={`site-nav-link nav-signup${router.pathname === '/Signup' ? ' active' : ''}`}>
+              Sign up
+            </Link>
           </nav>
         </div>
       </header>

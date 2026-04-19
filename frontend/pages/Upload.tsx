@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { UploadForm } from '../components/UploadForm';
 import { PredictionResultView } from '../components/PredictionResultView';
+import { PredictionResultSkeleton } from '../components/PredictionResultSkeleton';
 import { checkApiHealth, predictMedia, PredictionResponse } from '../services/api';
 
 const MAX_UPLOAD_SIZE_BYTES = 80 * 1024 * 1024;
@@ -103,7 +104,9 @@ export default function UploadPage() {
 
       {errorMessage ? <p className="error-text">{errorMessage}</p> : null}
 
-      {result && mediaUrl && mediaKind ? (
+      {isLoading ? (
+        <PredictionResultSkeleton />
+      ) : result && mediaUrl && mediaKind ? (
         <PredictionResultView mediaUrl={mediaUrl} mediaKind={mediaKind} result={result} />
       ) : null}
     </main>
